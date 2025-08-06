@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        body {
+            background: linear-gradient(135deg, #ff6b6b, #1e90ff, #9b59b6);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-heading {
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .lobby-interface, .game-interface {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        /* --- Buttons --- */
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .lobby-options {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+        .main-buttons {
+            flex-direction: row;
+            flex-wrap: nowrap;
+        }
+        .bot-level-selection {
+            text-align: center;
+        }
+        .bot-level-selection .buttons {
+            margin-top: 5px;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .lobby-btn {
+            background: linear-gradient(45deg, #1abc9c, #2ecc71);
+            color: white;
+        }
+        .start-btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+        .level-btn {
+            background: #2c3e50;
+            color: white;
+        }
+        .level-btn.active {
+            background: #f1c40f;
+            color: black;
+        }
+        .start-btn[disabled] {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        /* --- Game Board --- */
+        .game-interface {
+            display: none;
+            padding: 20px;
+            gap: 15px;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 8px;
+            justify-content: center;
+            margin-top: 20px;
+            border-radius: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 3.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .cell:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* --- Score & Status --- */
+        .score-level {
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        #status {
+            font-size: 1.5rem;
+            font-weight: 600;
+            min-height: 2rem;
+        }
+
+        /* --- Pop-up --- */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .popup-content {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            animation: bounceIn 0.6s ease-out;
+        }
+        .popup-content h2 {
+            margin-top: 0;
+            font-size: 2.5rem;
+            color: white;
+        }
+        .popup-content button {
+            background: #2ecc71;
+            color: white;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+        .popup-content .buttons {
+            margin-top: 10px;
+        }
+        .popup-content .back-btn {
+            background: #e67e22;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="main-heading">Tic-Tac-Toe</h1>
+    <div class="container">
+        
+        <div id="lobby-interface" class="lobby-interface">
+            <h2 class="subtitle">Challenge a Friend or a Bot</h2>
+            <div class="lobby-options">
+                <div class="buttons main-buttons">
+                    <button class="lobby-btn" onclick="setGameMode('friend')">Play with Friend</button>
+                    <button id="play-bot-btn" class="lobby-btn" onclick="toggleBotLevelSelection()">Play with Bot</button>
+                </div>
+                <div id="bot-level-selection-container" class="bot-level-selection" style="display: none;">
+                    <p>Select Bot Level:</p>
+                    <div class="buttons level-buttons">
+                        <button class="level-btn" onclick="setBotLevel('easy')">Easy</button>
+                        <button class="level-btn" onclick="setBotLevel('medium')">Medium</button>
+                        <button class="level-btn" onclick="setBotLevel('hard')">Hard</button>
+                    </div>
+                    <button id="start-level-btn" class="lobby-btn start-btn" disabled onclick="startBotGame()">Start Level</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-interface" class="game-interface">
+            <div class="score-level">
+                <p>Player X: <span id="scoreX">0</span> | Player O: <span id="scoreO">0</span></p>
+                <p>Bot Level: <span id="bot-level-display">---</span></p>
+            </div>
+            <div class="board" id="board"></div>
+            <h2 id="status"></h2>
+        </div>
+        
+    </div>
+
+    <div id="win-popup" class="popup-overlay">
+        <div class="popup-content">
+            <h2 id="win-message"></h2>
+            <div class="buttons">
+                <button onclick="closeWinPopup()">Play Again</button>
+                <button class="back-btn" onclick="goBackToLobby()">Back to Lobby</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="bg-music" loop>
+        <source src="https://www.soundjay.com/button/small-room-piano.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="x-move-sound">
+        <source src="https://www.soundjay.com/button/beep-07a.wav" type="audio/wav">
+    </audio>
+    <audio id="o-move-sound">
+        <source src="https://www.soundjay.com/button/beep-07b.wav" type="audio/wav">
+    </audio>
+    <audio id="win-sound">
+        <source src="https://www.soundjay.com/button/button-18.wav" type="audio/wav">
+    </audio>
+    <audio id="draw-sound">
+        <source src="https://www.soundjay.com/button/beep-06.wav" type="audio/wav">
+    </audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+    <script>
+        let board = ["", "", "", "", "", "", "", "", ""];
+        let currentPlayer = "X";
+        let gameActive = false;
+        let gameMode = "friend";
+        let botLevel = "easy";
+        let scoreX = 0, scoreO = 0;
+
+        const boardElement = document.getElementById("board");
+        const statusElement = document.getElementById("status");
+        const scoreXElement = document.getElementById("scoreX");
+        const scoreOElement = document.getElementById("scoreO");
+        const botLevelDisplayElement = document.getElementById("bot-level-display");
+        const lobbyInterface = document.getElementById("lobby-interface");
+        const gameInterface = document.getElementById("game-interface");
+        const playBotBtn = document.getElementById("play-bot-btn");
+        const startLevelBtn = document.getElementById("start-level-btn");
+        const botLevelSelectionContainer = document.getElementById("bot-level-selection-container");
+        const winPopup = document.getElementById("win-popup");
+        const winMessage = document.getElementById("win-message");
+
+        const bgMusic = document.getElementById("bg-music");
+        const xMoveSound = document.getElementById("x-move-sound");
+        const oMoveSound = document.getElementById("o-move-sound");
+        const winSound = document.getElementById("win-sound");
+        const drawSound = document.getElementById("draw-sound");
+
+        function toggleBotLevelSelection() {
+            botLevelSelectionContainer.style.display = 'flex';
+        }
+
+        function setGameMode(mode) {
+            gameMode = mode;
+            if (mode === 'friend') {
+                lobbyInterface.style.display = 'none';
+                gameInterface.style.display = 'flex';
+                botLevelDisplayElement.innerText = 'N/A';
+                startGame();
+            }
+        }
+
+        function setBotLevel(level) {
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.level-btn[onclick="setBotLevel('${level}')"]`).classList.add('active');
+            botLevel = level;
+            startLevelBtn.disabled = false;
+        }
+
+        function startBotGame() {
+            gameMode = 'bot';
+            lobbyInterface.style.display = 'none';
+            gameInterface.style.display = 'flex';
+            botLevelDisplayElement.innerText = botLevel.charAt(0).toUpperCase() + botLevel.slice(1);
+            startGame();
+        }
+
+        function startGame() {
+            resetGame();
+            gameActive = true;
+            statusElement.innerText = `Player ${currentPlayer}'s Turn`;
+            bgMusic.play();
+        }
+
+        function handleCellClick(index) {
+            if (!gameActive || board[index] !== "") return;
+            
+            board[index] = currentPlayer;
+            if (currentPlayer === "X") {
+                xMoveSound.play();
+            } else {
+                oMoveSound.play();
+            }
+            renderBoard();
+            
+            if (checkWinner()) {
+                showWinPopup(`Player ${currentPlayer} Wins!`);
+                updateScore(currentPlayer);
+                gameActive = false;
+                return;
+            } else if (!board.includes("")) {
+                showWinPopup("It's a Draw!");
+                gameActive = false;
+                return;
+            }
+
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            statusElement.innerText = `Player ${currentPlayer}'s Turn`;
+
+            if (gameMode === "bot" && currentPlayer === "O") {
+                setTimeout(botMove, 500);
+            }
+        }
+
+        function botMove() {
+            let emptyCells = board.map((val, idx) => val === "" ? idx : null).filter(v => v !== null);
+            let move;
+
+            if (botLevel === "easy") {
+                move = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            } else if (botLevel === "medium") {
+                move = findWinningMove("O") || findWinningMove("X") || emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            } else { // Hard (implements a simple minimax-like strategy)
+                move = findWinningMove("O") || findWinningMove("X") || getCenter() || getCorner() || emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            }
+
+            if (move !== undefined) {
+                handleCellClick(move);
+            }
+        }
+
+        function findWinningMove(player) {
+            for (let pattern of [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6]]) {
+                let [a, b, c] = pattern;
+                let line = [board[a], board[b], board[c]];
+                if (line.filter(cell => cell === player).length === 2 && line.includes("")) {
+                    return pattern.find(idx => board[idx] === "");
+                }
+            }
+            return null;
+        }
+
+        function getCenter() {
+            return board[4] === "" ? 4 : null;
+        }
+
+        function getCorner() {
+            const corners = [0, 2, 6, 8];
+            let availableCorners = corners.filter(c => board[c] === "");
+            return availableCorners.length > 0 ? availableCorners[Math.floor(Math.random() * availableCorners.length)] : null;
+        }
+
+        function checkWinner() {
+            return [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6]]
+                .some(pattern => {
+                    let [a, b, c] = pattern;
+                    return board[a] && board[a] === board[b] && board[a] === board[c];
+                });
+        }
+
+        function updateScore(player) {
+            if (player === "X") {
+                scoreX++;
+                scoreXElement.innerText = scoreX;
+            } else {
+                scoreO++;
+                scoreOElement.innerText = scoreO;
+            }
+        }
+
+        function renderBoard() {
+            boardElement.innerHTML = "";
+            board.forEach((cell, index) => {
+                const cellDiv = document.createElement("div");
+                cellDiv.classList.add("cell");
+                cellDiv.innerText = cell;
+                cellDiv.onclick = () => handleCellClick(index);
+                boardElement.appendChild(cellDiv);
+            });
+        }
+
+        function resetGame() {
+            board = ["", "", "", "", "", "", "", "", ""];
+            currentPlayer = "X";
+            gameActive = true;
+            renderBoard();
+            statusElement.innerText = `Player ${currentPlayer}'s Turn`;
+        }
+
+        function goBackToLobby() {
+            winPopup.style.display = 'none';
+            gameInterface.style.display = 'none';
+            lobbyInterface.style.display = 'flex';
+            botLevelSelectionContainer.style.display = 'none';
+            scoreX = 0;
+            scoreO = 0;
+            scoreXElement.innerText = scoreX;
+            scoreOElement.innerText = scoreO;
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+            startLevelBtn.disabled = true;
+            resetGame();
+        }
+
+        function showWinPopup(message) {
+            winMessage.innerText = message;
+            winPopup.style.display = 'flex';
+            if (message.includes("Wins")) {
+                winSound.play();
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            } else {
+                drawSound.play();
+            }
+        }
+
+        function closeWinPopup() {
+            winPopup.style.display = 'none';
+            resetGame();
+            if (gameMode === "bot" && currentPlayer === "O") {
+                setTimeout(botMove, 500);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderBoard();
+        });
+    </script>
+
+</body>
+</html>
